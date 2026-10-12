@@ -1,73 +1,172 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
- class Album {
-    final int userId;
-    final int id;
-    final String title;
+ class Task {
+    final String taskId;
+    final String description;
+    final String requiredCapability;
+    final int priority;
+    final String status;
+    final String assignedAgentId;
+    final String zone;
+    final Map<String, dynamic> constraints;
+    final String createdAt;
+    final String updatedAt;
 
-    const Album({required this.userId, required this.id, required this.title});
 
-    factory Album.fromJson(Map<String, dynamic> json) {
-      return switch (json) {
-        {'userId': int userId, 'id': int id, 'title': String title} => Album(
-          userId: userId,
-          id: id,
-          title: title,
-        ),
-        _ => throw const FormatException('Failed to load album.'),
-      };
+    const Task({required this.taskId, required this.description, required this.requiredCapability, required this.priority, required this.status, required this.assignedAgentId, required this.zone, required this.constraints, required this.createdAt, required this.updatedAt});
+
+    Map<String, dynamic> toJson() => {
+      'taskId': taskId,
+      'description': description,
+      'requiredCapability': requiredCapability,
+      'priority': priority,
+      'status': status,
+      'assignedAgentId': assignedAgentId,
+      'zone': zone,
+      'constraints': constraints,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+    };
+
+    factory Task.fromJson(Map<String, dynamic> json) {
+      debugPrint('🔍 Parsing JSON: $json');
+      try {
+        final constraintsRaw = json['constraints'];
+        final Map<String, dynamic> constraints = constraintsRaw is Map
+            ? Map<String, dynamic>.from(constraintsRaw)
+            : {};
+        
+        return Task(
+          taskId: _safeToString(json['taskId']),
+          description: _safeToString(json['description']),
+          requiredCapability: _safeToString(json['requiredCapability']),
+          priority: _safeToInt(json['priority']),
+          status: _safeToString(json['status']),
+          assignedAgentId: _safeToString(json['assignedAgentId']),
+          zone: _safeToString(json['zone']),
+          constraints: constraints,
+          createdAt: _safeToString(json['createdAt']),
+          updatedAt: _safeToString(json['updatedAt']),
+        );
+      } catch (e) {
+        debugPrint('❌ Invalid JSON structure. Got: $json');
+        debugPrint('❌ Error: $e');
+        throw const FormatException('Failed to load tasks.');
+      }
     }
 
-    static Future<Album> fetchAlbum() async {
+    static String _safeToString(dynamic value) {
+      if (value == null) return '';
+      return value.toString();
+    }
+
+    static int _safeToInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    static Future<List<Task>> fetchTasks() async {
+      debugPrint('📡 Fetching tasks from: http://192.168.111.3:18830/tasks');
       final response = await http.get(
         Uri.parse('http://192.168.111.3:18830/tasks'),
         headers: {'Accept': 'application/json'},
       );
 
+      debugPrint('📥 Response status: ${response.statusCode}');
+      debugPrint('📥 Response body: ${response.body}');
+
       if (response.statusCode == 200) {
-        // If the server did return a 200 OK response,
-        // then parse the JSON.
-        return Album.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+        debugPrint('✅ Parsing JSON...');
+        return (jsonDecode(response.body) as List).map((json) => Task.fromJson(json as Map<String, dynamic>)).toList();
       } else {
-        // If the server did not return a 200 OK response,
-        // then throw an exception.
-        throw Exception('Failed to load album');
+        debugPrint('❌ Request failed with status: ${response.statusCode}');
+        throw Exception('Failed to load tasks: HTTP ${response.statusCode}');
       }
     }
-  }
+    static Future<List<Task>> sendTasks() async {
+      debugPrint('📡 Sending task to: http://192.168.111.3:18830/tasks');
+      final task = Task(
+        taskId: '',
+        description: 'Sample Task',
+        requiredCapability: 'delivery.meal',
+        priority: 1,
+        status: 'pending',
+        assignedAgentId: 'agent-001',
+        zone: 'zone-001',
+        constraints: {'max_weight_kg': 10},
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      final response = await http.post(
+        Uri.parse('http://192.168.111.3:18830/tasks'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: jsonEncode(task.toJson()),
+      );
+
+      debugPrint('📥 Response status: ${response.statusCode}');
+      debugPrint('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        debugPrint('✅ Task created successfully. Parsing JSON...');
+        return [Task.fromJson(jsonDecode(response.body) as Map<String, dynamic>)];
+      } else {
+        debugPrint('❌ Request failed with status: ${response.statusCode}');
+        throw Exception('Failed to create task: HTTP ${response.statusCode}');
+      }
+    }
+    static Future<Task> createTask(String description, int priority) async {
+      debugPrint('📡 Sending task to: http://192.168.111.3:18830/tasks');
+      final task = Task(
+        taskId: '',
+        description: description,
+        requiredCapability: 'delivery.meal',
+        priority: priority,
+        status: 'pending',
+        assignedAgentId: 'agent-001',
+        zone: 'zone-001',
+        constraints: {'max_weight_kg': 10},
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      final response = await http.post(
+        Uri.parse('http://192.168.111.3:18830/tasks'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: jsonEncode(task.toJson()),
+      );
+
+      debugPrint('📥 Response status: ${response.statusCode}');
+      debugPrint('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        debugPrint('✅ Task created successfully. Parsing JSON...');
+        return Task.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      } else {
+        debugPrint('❌ Request failed with status: ${response.statusCode}');
+        throw Exception('Failed to create task: HTTP ${response.statusCode}');
+      }
+    }
+ }
 
 void main() {
+  debugPrint('🚀 App starting...');
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Rocom HRRM',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
       home: const MyHomePage(title: 'Rocom HRRM Home Page'),
@@ -78,15 +177,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -95,16 +185,41 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  bool _showTaskForm = false;
+  String _taskDescription = '';
+  int _taskPriority = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('🏠 MyHomePage initState');
+  }
 
   void _incrementCounter() {
+    debugPrint('➕ Counter incremented from $_counter to ${_counter + 1}');
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  void _toggleTaskForm() {
+    setState(() {
+      _showTaskForm = !_showTaskForm;
+    });
+  }
+
+  Future<void> _sendNewTask() async {
+    debugPrint('📤 Sending new task with description: $_taskDescription, priority: $_taskPriority');
+    try {
+      await Task.createTask(_taskDescription, _taskPriority);
+      setState(() {
+        _taskDescription = '';
+        _taskPriority = 1;
+        _showTaskForm = false;
+      });
+    } catch (e) {
+      debugPrint('❌ Failed to send task: $e');
+    }
   }
 
   @override
@@ -125,11 +240,55 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 30),
             const Text(
-              'Album Title:',
+              'Task Title:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             const GetTaskContent(),
+            if (_showTaskForm) ...[
+              const SizedBox(height: 20),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Create New Task',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _taskDescription = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Priority',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        setState(() {
+                          _taskPriority = int.tryParse(value) ?? 1;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _sendNewTask,
+                      child: const Text('Send task'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -137,16 +296,22 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), //FloatingActionbutton
+      ),
       persistentFooterButtons: [
         ElevatedButton(
           onPressed: () {
+            debugPrint('🔄 Refresh button pressed');
             setState(() {
-              Album.fetchAlbum();
+              debugPrint('🔄 Reloading tasks...');
+              Task.fetchTasks();
             });
           },
-          child: const Text('Refresh Album'),
+          child: const Text('Refresh Tasks'),
         ),
+        ElevatedButton(
+          onPressed: _toggleTaskForm,
+          child: const Text('New task'),
+        )
       ],
     );
   }
@@ -160,24 +325,33 @@ class GetTaskContent extends StatefulWidget {
 }
 
 class _GetTaskContentState extends State<GetTaskContent> {
-  late Future<Album> futureAlbum;
+  late Future<List<Task>> futureTasks;
 
   @override
   void initState() {
     super.initState();
-    futureAlbum = Album.fetchAlbum();
+    debugPrint('🛠️  InitState: Fetching tasks');
+    futureTasks = Task.fetchTasks();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Album>(
-      future: futureAlbum,
+    return FutureBuilder<List<Task>>(
+      future: futureTasks,
       builder: (context, snapshot) {
+        debugPrint('🔄 FutureBuilder state: ${snapshot.connectionState}');
         if (snapshot.hasData) {
-          return Text(snapshot.data!.title);
+          debugPrint('✅ Tasks loaded: ${snapshot.data}');
+          final tasks = snapshot.data!;
+          return Column(
+            children: tasks.map((task) => Text(task.description)).toList()
+          );
         } else if (snapshot.hasError) {
-          return Text('${snapshot.error}');
+          debugPrint('❌ Tasks error: ${snapshot.error}');
+          debugPrint('❌ Stack trace: ${snapshot.stackTrace}');
+          return Text('Error: ${snapshot.error}\nStack: ${snapshot.stackTrace}');
         }
+        debugPrint('⏳ Waiting for tasks data...');
         return const CircularProgressIndicator();
       },
     );
