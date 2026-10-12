@@ -17,8 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Platform-specific configurations for Android and Web
 - Project configuration files (pubspec.yaml, analysis_options.yaml)
 - Test directory structure
+- Refresh Album button in persistentFooterButtons for manual album data refresh
 
 ### Changed
+- Updated API endpoint from jsonplaceholder.typicode.com to local server (192.168.111.3:18830/tasks)
+- Updated app title from 'Flutter Demo' to 'Rocom HRRM'
+- Updated home page title from 'Flutter Demo Home Page' to 'Rocom HRRM Home Page'
+- Updated device_calendar dependency from 4.3.2 to ^4.3.3
+- Updated pubspec.lock with new dependency versions
 
 ### Fixed
 

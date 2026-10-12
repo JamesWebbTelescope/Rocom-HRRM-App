@@ -24,7 +24,7 @@ import 'package:http/http.dart' as http;
 
     static Future<Album> fetchAlbum() async {
       final response = await http.get(
-        Uri.parse('https://jsonplaceholder.typicode.com/albums/1'),
+        Uri.parse('http://192.168.111.3:18830/tasks'),
         headers: {'Accept': 'application/json'},
       );
 
@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Rocom HRRM',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Rocom HRRM Home Page'),
     );
   }
 }
@@ -137,7 +137,17 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ),
+      ), //FloatingActionbutton
+      persistentFooterButtons: [
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              Album.fetchAlbum();
+            });
+          },
+          child: const Text('Refresh Album'),
+        ),
+      ],
     );
   }
 }
