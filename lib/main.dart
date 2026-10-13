@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -105,7 +104,7 @@ import 'package:http/http.dart' as http;
         updatedAt: DateTime.now().toIso8601String(),
       );
       final response = await http.post(
-        Uri.parse('http://192.168.111.3:18830/tasks'),
+        Uri.parse('http://10.0.6.209:18830/tasks'),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode(task.toJson()),
       );
@@ -136,7 +135,7 @@ import 'package:http/http.dart' as http;
         updatedAt: DateTime.now().toIso8601String(),
       );
       final response = await http.post(
-        Uri.parse('http://192.168.111.3:18830/tasks'),
+        Uri.parse('http://10.0.6.209:18830/tasks'),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode(task.toJson()),
       );
@@ -188,11 +187,20 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showTaskForm = false;
   String _taskDescription = '';
   int _taskPriority = 1;
+  late Future<List<Task>> futureTasks;
 
   @override
   void initState() {
     super.initState();
     debugPrint('🏠 MyHomePage initState');
+    _refreshTasks();
+  }
+
+  void _refreshTasks() {
+    debugPrint('🔄 Refreshing tasks...');
+    setState(() {
+      futureTasks = Task.fetchTasks();
+    });
   }
 
   void _incrementCounter() {
@@ -298,19 +306,19 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ),
       persistentFooterButtons: [
-        ElevatedButton(
-          onPressed: () {
-            debugPrint('🔄 Refresh button pressed');
-            setState(() {
-              debugPrint('🔄 Reloading tasks...');
-              Task.fetchTasks();
-            });
-          },
-          child: const Text('Refresh Tasks'),
-        ),
-        ElevatedButton(
-          onPressed: _toggleTaskForm,
-          child: const Text('New task'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: _refreshTasks,
+              child: const Text('Refresh Tasks'),
+            ),
+            const SizedBox(width: 20),
+            ElevatedButton(
+              onPressed: _toggleTaskForm,
+              child: const Text('New task'),
+            ),
+          ],
         )
       ],
     );

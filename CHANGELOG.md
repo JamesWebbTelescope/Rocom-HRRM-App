@@ -32,6 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading state with CircularProgressIndicator
 
 ### Changed
+- Updated API endpoint IP from 192.168.111.3:18830/tasks to 10.0.6.209:18830/tasks in Task.sendTasks() and Task.createTask() methods
+- Added automatic task refresh on MyHomePage initState via _refreshTasks() method
+- Refactored persistentFooterButtons to use Row layout with proper spacing
+- Added late Future<List<Task>> futureTasks initialization in _MyHomePageState
+- Removed unused import 'package:flutter/foundation.dart' from main.dart
+- Reduced Gradle JVM heap memory from -Xmx8G to -Xmx2G
+- Reduced Gradle MaxMetaspaceSize from 4G to 512m and ReservedCodeCacheSize from 512m to 256m
+- Removed -XX:+HeapDumpOnOutOfMemoryError from Gradle JVM args
+- Changed Gradle distribution from gradle-9.3.1-all.zip to gradle-9.3.1-bin.zip
+- Added gradle.user.home=D:/gradle/gradle-user-home to both gradle.properties and gradle-wrapper.properties
 - Updated API endpoint from jsonplaceholder.typicode.com to local server (192.168.111.3:18830/tasks)
 - Updated app title from 'Flutter Demo' to 'Rocom HRRM'
 - Updated home page title from 'Flutter Demo Home Page' to 'Rocom HRRM Home Page'
