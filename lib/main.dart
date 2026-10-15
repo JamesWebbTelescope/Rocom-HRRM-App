@@ -153,6 +153,48 @@ import 'package:http/http.dart' as http;
     }
  }
 
+ class Agent {
+    final String type;
+    final String hrRef;
+    final String agentId;
+    final String status;
+    final List<String> capabilities;
+    final Map<String, dynamic> position;
+    final Map<String, dynamic> metadata;
+
+    const Agent({
+      required this.type,
+      required this.hrRef,
+      required this.agentId,
+      required this.status,
+      required this.capabilities,
+      required this.position,
+      required this.metadata,
+    });
+
+    Map<String, dynamic> toJson() => {
+      'type': type,
+      'hrRef': hrRef,
+      'agentId': agentId,
+      'status': status,
+      'capabilities': capabilities,
+      'position': position,
+      'metadata': metadata,
+    };
+
+    factory Agent.fromJson(Map<String, dynamic> json) {
+      return Agent(
+        type: json['type'] as String? ?? '',
+        hrRef: json['hrRef'] as String? ?? '',
+        agentId: json['agentId'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        capabilities: (json['capabilities'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+        position: json['position'] as Map<String, dynamic>? ?? {},
+        metadata: json['metadata'] as Map<String, dynamic>? ?? {},
+      );
+    }
+ }
+
 void main() {
   debugPrint('🚀 App starting...');
   runApp(const MyApp());
@@ -187,6 +229,9 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showTaskForm = false;
   String _taskDescription = '';
   int _taskPriority = 1;
+  bool _showAgentForm = false;
+  String _agentType = '';
+  String _agentStatus = '';
   late Future<List<Task>> futureTasks;
 
   @override
@@ -213,6 +258,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _toggleTaskForm() {
     setState(() {
       _showTaskForm = !_showTaskForm;
+    });
+  }
+
+  void _toggleAgentForm() {
+    setState(() {
+      _showAgentForm = !_showAgentForm;
     });
   }
 
@@ -247,12 +298,26 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 30),
-            const Text(
-              'Task Title:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _refreshTasks,
+                  child: const Text('Refresh Tasks'),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: _toggleTaskForm,
+                  child: const Text('New task'),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: _toggleAgentForm,
+                  child: const Text('Add Agent'),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            const GetTaskContent(),
             if (_showTaskForm) ...[
               const SizedBox(height: 20),
               Container(
@@ -297,6 +362,49 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ],
+            if (_showAgentForm) ...[
+              const SizedBox(height: 20),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Create New Agent',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Type',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _agentType = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _agentStatus = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: const Text('Create Agent'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -305,22 +413,6 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
-      persistentFooterButtons: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: _refreshTasks,
-              child: const Text('Refresh Tasks'),
-            ),
-            const SizedBox(width: 20),
-            ElevatedButton(
-              onPressed: _toggleTaskForm,
-              child: const Text('New task'),
-            ),
-          ],
-        )
-      ],
     );
   }
 }
