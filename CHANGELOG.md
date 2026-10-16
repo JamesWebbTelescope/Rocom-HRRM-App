@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
+- Environment variable support using flutter_dotenv package
+- .env file configuration for API base URL (HRRM_API_BASE_URL)
+- .env asset declaration in pubspec.yaml
+- .env and .env.* files added to .gitignore (with .env.example exception)
 - Initial Flutter project structure with MaterialApp scaffold
 - Album model with JSON serialization and HTTP fetching capability
 - MyHomePage widget with counter functionality and state management
@@ -32,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading state with CircularProgressIndicator
 
 ### Changed
+- API endpoints now use environment variable (HRRM_API_BASE_URL) with fallback to hardcoded URL
+- main() function changed to async to support dotenv loading at startup
+- Added dotenv.load() initialization at app startup
+- Button layout changed from Row to Column in MyHomePage for better responsiveness
 - Updated API endpoint IP from 192.168.111.3:18830/tasks to 10.0.6.209:18830/tasks in Task.sendTasks() and Task.createTask() methods
 - Added automatic task refresh on MyHomePage initState via _refreshTasks() method
 - Refactored persistentFooterButtons to use Row layout with proper spacing

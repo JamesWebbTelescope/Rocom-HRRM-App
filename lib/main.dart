@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
  class Task {
     final String taskId;
@@ -72,9 +73,11 @@ import 'package:http/http.dart' as http;
     }
 
     static Future<List<Task>> fetchTasks() async {
-      debugPrint('📡 Fetching tasks from: http://192.168.111.3:18830/tasks');
+      final baseUrl = dotenv.get('HRRM_API_BASE_URL', fallback: 'http://192.168.111.3:18830');
+      final apiUrl = '$baseUrl/tasks';
+      debugPrint('📡 Fetching tasks from: $apiUrl');
       final response = await http.get(
-        Uri.parse('http://192.168.111.3:18830/tasks'),
+        Uri.parse(apiUrl),
         headers: {'Accept': 'application/json'},
       );
 
@@ -90,7 +93,9 @@ import 'package:http/http.dart' as http;
       }
     }
     static Future<List<Task>> sendTasks() async {
-      debugPrint('📡 Sending task to: http://192.168.111.3:18830/tasks');
+      final baseUrl = dotenv.get('HRRM_API_BASE_URL', fallback: 'http://192.168.111.3:18830');
+      final apiUrl = '$baseUrl/tasks';
+      debugPrint('📡 Sending task to: $apiUrl');
       final task = Task(
         taskId: '',
         description: 'Sample Task',
@@ -104,7 +109,7 @@ import 'package:http/http.dart' as http;
         updatedAt: DateTime.now().toIso8601String(),
       );
       final response = await http.post(
-        Uri.parse('http://10.0.6.209:18830/tasks'),
+        Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode(task.toJson()),
       );
@@ -121,7 +126,9 @@ import 'package:http/http.dart' as http;
       }
     }
     static Future<Task> createTask(String description, int priority) async {
-      debugPrint('📡 Sending task to: http://192.168.111.3:18830/tasks');
+      final baseUrl = dotenv.get('HRRM_API_BASE_URL', fallback: 'http://192.168.111.3:18830');
+      final apiUrl = '$baseUrl/tasks';
+      debugPrint('📡 Sending task to: $apiUrl');
       final task = Task(
         taskId: '',
         description: description,
@@ -135,7 +142,7 @@ import 'package:http/http.dart' as http;
         updatedAt: DateTime.now().toIso8601String(),
       );
       final response = await http.post(
-        Uri.parse('http://10.0.6.209:18830/tasks'),
+        Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode(task.toJson()),
       );
@@ -195,8 +202,10 @@ import 'package:http/http.dart' as http;
     }
  }
 
-void main() {
+void main() async {
   debugPrint('🚀 App starting...');
+  await dotenv.load(fileName: ".env");
+  debugPrint('✅ Environment variables loaded');
   runApp(const MyApp());
 }
 
@@ -298,7 +307,7 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 30),
-            Row(
+            Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
